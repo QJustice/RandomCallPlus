@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CMainWindow</class>
+ <widget class="QMainWindow" name="CMainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>80</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>CMainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QPushButton" name="otherOnebtn">
+    <property name="geometry">
+     <rect>
+      <x>80</x>
+      <y>440</y>
+      <width>100</width>
+      <height>40</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>还有谁</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="checkBox">
+    <property name="geometry">
+     <rect>
+      <x>80</x>
+      <y>490</y>
+      <width>95</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>雨露均沾</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>100</x>
+      <y>100</y>
+      <width>600</width>
+      <height>100</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>64</pointsize>
+     </font>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::NoFrame</enum>
+    </property>
+    <property name="text">
+     <string>开始</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="startbtn">
+    <property name="geometry">
+     <rect>
+      <x>300</x>
+      <y>350</y>
+      <width>200</width>
+      <height>50</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>18</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>开始</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="labelNum">
+    <property name="geometry">
+     <rect>
+      <x>590</x>
+      <y>490</y>
+      <width>161</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>0/0(已出场/全部)</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton">
+    <property name="geometry">
+     <rect>
+      <x>620</x>
+      <y>440</y>
+      <width>100</width>
+      <height>40</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>重置</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="nowClaLab">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>20</y>
+      <width>150</width>
+      <height>50</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>请选择班级</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>文件</string>
+    </property>
+    <addaction name="actionImpStuNam"/>
+    <addaction name="actionExpStuNam"/>
+    <addaction name="actionAddStudent"/>
+    <addaction name="actionDeleteStudent"/>
+   </widget>
+   <widget class="QMenu" name="menuStatistics">
+    <property name="title">
+     <string>统计</string>
+    </property>
+    <addaction name="actionMaxScore"/>
+    <addaction name="actionMinScore"/>
+    <addaction name="actionMaxAnswer"/>
+    <addaction name="actionMinAnswer"/>
+   </widget>
+   <widget class="QMenu" name="menuFunction">
+    <property name="title">
+     <string>功能</string>
+    </property>
+    <addaction name="actionCreateClass"/>
+    <addaction name="actionChangeClass"/>
+    <addaction name="actionDeleteClass"/>
+    <addaction name="actionCreateDiploma"/>
+   </widget>
+   <widget class="QMenu" name="menuAbout">
+    <property name="title">
+     <string>关于</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuSetting">
+    <property name="title">
+     <string>设置</string>
+    </property>
+    <addaction name="actionDipTemPath"/>
+    <addaction name="actionFlaKey"/>
+    <addaction name="actionSeparator"/>
+    <addaction name="actionBuiFolPath"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuFunction"/>
+   <addaction name="menuSetting"/>
+   <addaction name="menuStatistics"/>
+   <addaction name="menuAbout"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <action name="actionImpStuNam">
+   <property name="text">
+    <string>导入学生</string>
+   </property>
+  </action>
+  <action name="actionExpStuNam">
+   <property name="text">
+    <string>导出学生</string>
+   </property>
+  </action>
+  <action name="actionAddStudent">
+   <property name="text">
+    <string>添加学生</string>
+   </property>
+  </action>
+  <action name="actionDeleteStudent">
+   <property name="text">
+    <string>删除学生</string>
+   </property>
+  </action>
+  <action name="actionCreateClass">
+   <property name="text">
+    <string>创建班级</string>
+   </property>
+  </action>
+  <action name="actionChangeClass">
+   <property name="text">
+    <string>更换班级</string>
+   </property>
+  </action>
+  <action name="actionDeleteClass">
+   <property name="text">
+    <string>删除班级</string>
+   </property>
+  </action>
+  <action name="actionMaxScore">
+   <property name="text">
+    <string>最高得分</string>
+   </property>
+  </action>
+  <action name="actionMinScore">
+   <property name="text">
+    <string>最低得分</string>
+   </property>
+  </action>
+  <action name="actionMaxAnswer">
+   <property name="text">
+    <string>最多回答</string>
+   </property>
+  </action>
+  <action name="actionMinAnswer">
+   <property name="text">
+    <string>最少回答 </string>
+   </property>
+  </action>
+  <action name="actionCreateDiploma">
+   <property name="text">
+    <string>生成证书</string>
+   </property>
+  </action>
+  <action name="actionDipTemPath">
+   <property name="text">
+    <string>证书模板</string>
+   </property>
+  </action>
+  <action name="actionFlaKey">
+   <property name="text">
+    <string>标记关键字</string>
+   </property>
+  </action>
+  <action name="actionSeparator">
+   <property name="text">
+    <string>分隔符</string>
+   </property>
+  </action>
+  <action name="actionBuiFolPath">
+   <property name="text">
+    <string>保存文件夹</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
