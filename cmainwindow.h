@@ -59,7 +59,7 @@ private slots:
     void changeClassWindow();                                               // 更换当前班级窗口
     void createClassWindow();                                               // 建立创建班级窗口
     void deleteClassWindow();                                               // 删除班级窗口
-    void statisticWindow();                                                 // 统计窗口
+    void statisticWindow(QString ins);                                      // 统计窗口
     void handleTimeout();
     void readList();
     void showOtherOne();
@@ -75,6 +75,10 @@ private slots:
     void stuNumEdiSetStuNam();                                              // 自动更新学生名
     void initOneStuOneTimeFuc(int arg);                                     // 初始化雨露均沾功能
     void resseting();                                                       // 重置程序
+    void actionMaxAnsFun();                                                 // 最多回答
+    void actionMinAnsFun();                                                 // 最少回答
+    void actionMaxSourceFun();                                              // 最多得分
+    void actionMinSourceFun();                                              // 最少得分
 
 };
 

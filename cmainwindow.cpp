@@ -9,6 +9,8 @@
 #include <QDebug>
 #include <QSqlError>
 #include <QMessageBox>
+#include <QRandomGenerator>
+
 
 CMainWindow::CMainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -43,10 +45,10 @@ CMainWindow::CMainWindow(QWidget *parent)
     connect(ui->actionChangeClass, &QAction::triggered, this, &CMainWindow::changeClassWindow);
     connect(ui->actionAddStudent, &QAction::triggered, this, &CMainWindow::addStudenWindow);
     connect(ui->actionDeleteStudent, &QAction::triggered, this, &CMainWindow::deleteStudentWindow);
-    connect(ui->actionMaxAnswer, &QAction::triggered, this, &CMainWindow::statisticWindow);
-    connect(ui->actionMinAnswer, &QAction::triggered, this, &CMainWindow::statisticWindow);
-    connect(ui->actionMaxScore, &QAction::triggered, this, &CMainWindow::statisticWindow);
-    connect(ui->actionMinScore, &QAction::triggered, this, &CMainWindow::statisticWindow);
+    connect(ui->actionMaxAnswer, &QAction::triggered, this, &CMainWindow::actionMaxAnsFun);
+    connect(ui->actionMinAnswer, &QAction::triggered, this, &CMainWindow::actionMinAnsFun);
+    connect(ui->actionMaxScore, &QAction::triggered, this, &CMainWindow::actionMaxSourceFun);
+    connect(ui->actionMinScore, &QAction::triggered, this, &CMainWindow::actionMinSourceFun);
     // void (QComboBox::*comCurTextChaSignal)(const QString &text)= &QComboBox::currentTextChanged; //带参函数指针
     void (QCheckBox::*cheStaSignal)(int arg) = &QCheckBox::stateChanged;
     connect(ui->checkBox, cheStaSignal, this, &CMainWindow::initOneStuOneTimeFuc);
@@ -256,7 +258,7 @@ void CMainWindow::deleteClassWindow()
     connect(this->m_delClsWin, &CDeleteClassWindow::claNumChange, this, &CMainWindow::claNumEdiSetClaNam);
 }
 
-void CMainWindow::statisticWindow()
+void CMainWindow::statisticWindow(QString ins)
 {
     if ("请选择班级" == ui->nowClaLab->text())
     {
@@ -272,7 +274,17 @@ void CMainWindow::statisticWindow()
     QString str2 = "StuSource DESC";
     QString str3 = "StuAnsTime ASC";
     QString str4 = "StuSource ASC";
-
+    QString strRes = str1;
+    if (STU_ANS_TIME_MAX == ins)
+        strRes = str1;
+    else if (STU_ANS_TIME_MIN == ins)
+        strRes = str2;
+    else if (STU_SOURCE_MAX == ins)
+        strRes = str3;
+    else if (STU_SOURCE_MIN == ins)
+        strRes = str4;
+    else
+        ;
     QSqlQuery sqlQuery(this->m_database); // 用于执行sql语句的对象
     // SELECT COUNT(*) FROM sqlite_master where type ='table' and name = 'Class'
     QString queryTemp = QString(
@@ -282,7 +294,7 @@ void CMainWindow::statisticWindow()
                                     "AND Student.StuNum = StuData.StuNum                                    "
                                     "AND StuClass.ClassNum = '%1'                                           "
                                     "ORDER BY %2                                                            "
-                                ).arg(this->claNumAndclaNam.first, str3);
+                                ).arg(this->claNumAndclaNam.first, strRes);
     sqlQuery.prepare(queryTemp);
     // 执行sql语句
     if (!sqlQuery.exec())
@@ -324,8 +336,9 @@ void CMainWindow::statisticWindow()
 
 void CMainWindow::handleTimeout()
 {
-    srand((unsigned)time(NULL));
-    ui->label->setText(QString(this->m_pList->at(rand() % this->m_pList->size())));
+    // 生成随机数范围为0~未出场人数最大下标减去1
+    int randNum = QRandomGenerator::global()->bounded(0,this->m_pList->size());
+    ui->label->setText(QString(this->m_pList->at(randNum)));
 }
 
 void CMainWindow::readList()
@@ -842,4 +855,24 @@ void CMainWindow::resseting()
     ui->labelNum->setText("0/0(已出场/全部)");
     this->m_pList->clear();
     this->m_pLukeyList->clear();
+}
+
+void CMainWindow::actionMaxAnsFun()
+{
+    this->statisticWindow(STU_ANS_TIME_MAX);
+}
+
+void CMainWindow::actionMinAnsFun()
+{
+    this->statisticWindow(STU_ANS_TIME_MIN);
+}
+
+void CMainWindow::actionMaxSourceFun()
+{
+    this->statisticWindow(STU_SOURCE_MAX);
+}
+
+void CMainWindow::actionMinSourceFun()
+{
+    this->statisticWindow(STU_SOURCE_MIN);
 }
