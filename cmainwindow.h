@@ -2,6 +2,12 @@
 #ifndef CMAINWINDOW_H
 #define CMAINWINDOW_H
 
+#define PY_SSIZE_T_CLEAN
+#undef slots
+#include <Python.h>
+#define slots Q_SLOTS
+/* 这几行代码是因为python中有个object.h文件中slots的宏定义和Qt中的slots重复定义了，这里我们将python中slots定义为和Qt一样就好了*/
+
 #include <QMainWindow>
 #include <QTime>
 #include <QSqlDatabase>
@@ -15,6 +21,7 @@
 #include "cdeletestudentwindow.h"
 #include "cshowotheronewindow.h"
 #include "cstatisticswindow.h"
+#include "ccreateprizewindow.h"
 
 
 QT_BEGIN_NAMESPACE
@@ -48,8 +55,7 @@ private:
     CDeleteStudentWindow  *m_delStuWin = nullptr;                           // 删除学生窗口
     CShowOtherOneWindow *m_showOthOneWin = nullptr;                         // 学生出场情况查看窗口
     CStatisticsWindow *m_statisticWin = nullptr;                            // 统计数据窗口
-
-
+    CCreatePrizeWindow *m_crePriWin = nullptr;                              // 生成奖状窗口
 
     int m_errCode = 0;                                                      //状态码：0读取名单文件成功 1没有找到名单文件，2名单文件读取失败
     int m_allNum = 0;                                                       // 所有学生数量
@@ -60,6 +66,7 @@ private slots:
     void createClassWindow();                                               // 建立创建班级窗口
     void deleteClassWindow();                                               // 删除班级窗口
     void statisticWindow(QString ins);                                      // 统计窗口
+    void createPrizeWindow();                                               // 生成奖品窗口
     void handleTimeout();
     void readList();
     void showOtherOne();
@@ -70,6 +77,7 @@ private slots:
     void nowDelCla();                                                       // 删除班级
     void nowChaCla();                                                       // 更换班级
     void nowDelStu();                                                       // 删除学生
+    void nowCrePri();                                                       // 生成奖状
     void claNumEdiSetClaNam();                                              // 自动更新班级名
     void deleteStudentWindow();                                             // 删除学生
     void stuNumEdiSetStuNam();                                              // 自动更新学生名

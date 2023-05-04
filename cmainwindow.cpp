@@ -2,7 +2,14 @@
 #include "cmainwindow.h"
 #include "./ui_cmainwindow.h"
 #include "config.h"
+#include "cpythreadstatelock.h"
 
+#include <QDebug>
+#define PY_SSIZE_T_CLEAN
+#undef slots
+#include <Python.h>
+#define slots Q_SLOTS
+/* 这几行代码是因为python中有个object.h文件中slots的宏定义和Qt中的slots重复定义了，这里我们将python中slots定义为和Qt一样就好了*/
 #include <QSqlQuery>
 #include <QTimer>
 #include <QMessageBox>
@@ -16,6 +23,30 @@ CMainWindow::CMainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::CMainWindow)
 {
+
+    Py_SetPythonHome((wchar_t *)(L"Python310"));
+
+    if (!Py_IsInitialized())
+    {
+        //1.初始化Python解释器，这是调用操作的第一步
+        Py_Initialize();
+        if (!Py_IsInitialized()) {
+            qDebug("Initial Python failed!");
+            //            emit failed();
+        }
+        else {
+
+            //执行单句Python语句，用于给出调用模块的路径，否则将无法找到相应的调用模块
+            // 初始化线程支持
+            PyEval_InitThreads();
+
+            // 启动子线程前执行，为了释放PyEval_InitThreads获得的全局锁，否则子线程可能无法获取到全局锁。
+            PyEval_ReleaseThread(PyThreadState_Get());
+            qDebug("Initial Python Success!");
+
+        }
+    }
+
     this->ui->setupUi(this);
 
     this->m_pList = new QStringList;
@@ -49,6 +80,7 @@ CMainWindow::CMainWindow(QWidget *parent)
     connect(ui->actionMinAnswer, &QAction::triggered, this, &CMainWindow::actionMinAnsFun);
     connect(ui->actionMaxScore, &QAction::triggered, this, &CMainWindow::actionMaxSourceFun);
     connect(ui->actionMinScore, &QAction::triggered, this, &CMainWindow::actionMinSourceFun);
+    connect(ui->actionCreateDiploma, &QAction::triggered, this, &CMainWindow::createPrizeWindow);
     // void (QComboBox::*comCurTextChaSignal)(const QString &text)= &QComboBox::currentTextChanged; //带参函数指针
     void (QCheckBox::*cheStaSignal)(int arg) = &QCheckBox::stateChanged;
     connect(ui->checkBox, cheStaSignal, this, &CMainWindow::initOneStuOneTimeFuc);
@@ -58,6 +90,7 @@ CMainWindow::CMainWindow(QWidget *parent)
 CMainWindow::~CMainWindow()
 {
     this->m_database.close();
+    Py_Finalize();
     delete ui;
     delete this->m_pList;
     delete this->m_pLukeyList;
@@ -332,6 +365,15 @@ void CMainWindow::statisticWindow(QString ins)
     } while (sqlQuery.next());
 
     this->m_statisticWin->show();
+}
+
+void CMainWindow::createPrizeWindow()
+{
+
+    this->m_crePriWin = new CCreatePrizeWindow;
+    this->m_crePriWin->show();
+
+    connect(this->m_crePriWin, &CCreatePrizeWindow::isCreatePrize, this, &CMainWindow::nowCrePri);
 }
 
 void CMainWindow::handleTimeout()
@@ -742,6 +784,68 @@ void CMainWindow::nowDelStu()
         this->m_delStuWin->close();
         QMessageBox::information(this, "提示", "学生删除成功");
     }
+}
+
+void CMainWindow::nowCrePri()
+{
+    QStringList stuName = this->m_crePriWin->getStuNameList();
+    qDebug() << this->m_crePriWin->getDipTemPath();
+    qDebug() << this->m_crePriWin->getStuNameList();
+    qDebug() << this->m_crePriWin->getFlaKey();
+    qDebug() << this->m_crePriWin->getBuiFolPath();
+
+
+    PyObject* pModule = NULL;
+    PyObject* pFunc = NULL;
+    PyObject* pName = NULL;
+    //2、初始化python系统文件路径，保证可以访问到 .py文件
+    //    PyRun_SimpleString("import sys");
+    //    PyRun_SimpleString("sys.path.append('./')");
+
+    //3、调用python文件名。当前的测试python文件名是 handleword.py
+    // 在使用这个函数的时候，只需要写文件的名称就可以了。不用写后缀。
+    class CPyThreadStateLock PyThreadLock; // 获取全局锁
+    qDebug() << "1";
+    pModule = PyImport_ImportModule("handleword");
+    //4、调用函数
+    qDebug() << "2";
+    pFunc = PyObject_GetAttrString(pModule, "write_word");
+    //5、给python传参数
+    // 函数调用的参数传递均是以元组的形式打包的,2表示参数个数
+    // 如果AdditionFc中只有一个参数时，写1就可以了
+    qDebug() << "3";
+    PyObject* pArgs = PyTuple_New(4);
+
+    // 7、接收python计算好的返回值
+    int nResult;
+    qDebug() << "4";
+    for (int i = 0; i < stuName.size(); i++)
+    {
+//        qDebug() << "i" << i;
+//        qDebug() << "stusize" << stuName.size();
+//        qDebug() << stuName.at(i).toStdString().c_str();
+
+        // 0：第一个参数，传入 int 类型的值 2
+        PyTuple_SetItem(pArgs, 0, Py_BuildValue("s", this->m_crePriWin->getDipTemPath().toStdString().c_str()));
+        // 1：第二个参数，传入 int 类型的值 4
+        PyTuple_SetItem(pArgs, 1, Py_BuildValue("s", stuName.at(i).toStdString().c_str()));
+        // 2：第三个参数，传入 int 类型的值 2
+        PyTuple_SetItem(pArgs, 2, Py_BuildValue("s", this->m_crePriWin->getFlaKey().toStdString().c_str()));
+        // 3：第四个参数，传入 int 类型的值 4
+        PyTuple_SetItem(pArgs, 3, Py_BuildValue("s", this->m_crePriWin->getBuiFolPath().toStdString().c_str()));
+//        qDebug() << "is here";
+//        qDebug() << this->m_crePriWin->getFlaKey().toStdString().c_str();
+        // 6、使用C++的python接口调用该函数
+        PyObject* pReturn = PyObject_CallObject(pFunc, pArgs);
+
+
+        // i表示转换成int型变量。
+        // 在这里，最需要注意的是：PyArg_Parse的最后一个参数，必须加上“&”符号
+        PyArg_Parse(pReturn, "i", &nResult);
+        qDebug() << "return result is " << nResult;
+    }
+
+    qDebug() << "ok";
 }
 
 void CMainWindow::claNumEdiSetClaNam()

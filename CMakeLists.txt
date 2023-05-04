@@ -9,10 +9,10 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(PYTHON_INCLUDE_DIR "E:/WorkSpace/QtCreatorFile/ConsoleTest/ConsoleTest/Python310/include")
-set(PYTHON_LIB_DIR "E:/WorkSpace/QtCreatorFile/ConsoleTest/ConsoleTest/Python310/Lib")
-set(PYTHON_LIBS_LINK_310 "E:/WorkSpace/QtCreatorFile/ConsoleTest/ConsoleTest/Python310/libs/python310.lib")
-set(PYTHON_LIBS_LINK_3 "E:/WorkSpace/QtCreatorFile/ConsoleTest/ConsoleTest/Python310/libs/python3.lib")
+set(PYTHON_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Python310/include")
+set(PYTHON_LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Python310/Lib")
+set(PYTHON_LIBS_LINK_310 "${CMAKE_CURRENT_SOURCE_DIR}/Python310/libs/python310.lib")
+set(PYTHON_LIBS_LINK_3 "${CMAKE_CURRENT_SOURCE_DIR}/Python310/libs/python3.lib")
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
@@ -21,32 +21,21 @@ include_directories(${PYTHON_INCLUDE_DIR})
 include_directories(${PYTHON_LIB_DIR})
 
 set(PROJECT_SOURCES
-        main.cpp
-        cmainwindow.cpp
-        cmainwindow.h
-        cmainwindow.ui
-        config.h
-        ccreateclasswindow.h
-        ccreateclasswindow.cpp
-        ccreateclasswindow.ui
-        cdeleteclasswindow.h
-        cdeleteclasswindow.cpp
-        cdeleteclasswindow.ui
-        cchangeclasswindow.h
-        cchangeclasswindow.cpp
-        cchangeclasswindow.ui
-        caddstudentwindow.h
-        caddstudentwindow.cpp
-        caddstudentwindow.ui
-        cdeletestudentwindow.h
-        cdeletestudentwindow.cpp
-        cdeletestudentwindow.ui
-        cshowotheronewindow.h
-        cshowotheronewindow.cpp
-        cshowotheronewindow.ui
-        cstatisticswindow.h
-        cstatisticswindow.cpp
-        cstatisticswindow.ui
+    handleword.py
+    main.cpp
+    cmainwindow.cpp
+    cmainwindow.h
+    cmainwindow.ui
+    config.h
+    cpythreadstatelock.h cpythreadstatelock.cpp
+    ccreateclasswindow.h ccreateclasswindow.cpp ccreateclasswindow.ui
+    cdeleteclasswindow.h cdeleteclasswindow.cpp cdeleteclasswindow.ui
+    cchangeclasswindow.h cchangeclasswindow.cpp cchangeclasswindow.ui
+    caddstudentwindow.h caddstudentwindow.cpp caddstudentwindow.ui
+    cdeletestudentwindow.h cdeletestudentwindow.cpp cdeletestudentwindow.ui
+    cshowotheronewindow.h cshowotheronewindow.cpp cshowotheronewindow.ui
+    cstatisticswindow.h cstatisticswindow.cpp cstatisticswindow.ui
+    ccreateprizewindow.h ccreateprizewindow.cpp ccreateprizewindow.ui
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
