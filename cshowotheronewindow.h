@@ -14,7 +14,7 @@ class CShowOtherOneWindow : public QMainWindow
 public:
     explicit CShowOtherOneWindow(QWidget *parent = nullptr);
     ~CShowOtherOneWindow();
-    void setlist(QStringList strlis1, QStringList strlis2);
+    void setlist(QList<std::pair<QString, QString>> strlis1, QList<std::pair<QString, QString>> strlis2);
 
 private:
     Ui::CShowOtherOneWindow *ui;

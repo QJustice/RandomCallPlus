@@ -22,6 +22,9 @@ public:
 signals:
     void isCreatePrize();
 
+private slots:
+    void on_toolButtonTemPath_clicked();
+
 private:
     Ui::CCreatePrizeWindow *ui;
 };

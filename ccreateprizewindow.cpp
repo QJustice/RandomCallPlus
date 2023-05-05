@@ -1,5 +1,6 @@
 #include "ccreateprizewindow.h"
 #include "ui_ccreateprizewindow.h"
+#include "QFileDialog"
 
 CCreatePrizeWindow::CCreatePrizeWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -44,3 +45,9 @@ QStringList CCreatePrizeWindow::getStuNameList()
         splitStr = "\n";
     return ui->textEdit->toPlainText().split(splitStr);
 }
+
+void CCreatePrizeWindow::on_toolButtonTemPath_clicked()
+{
+    ui->lineEditTemPath->setText(QFileDialog::getOpenFileName(this));
+}
+

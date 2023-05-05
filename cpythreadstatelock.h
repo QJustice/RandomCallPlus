@@ -15,7 +15,9 @@ public:
     CPyThreadStateLock();
     ~CPyThreadStateLock();
 private:
-    PyGILState_STATE state;
+    PyGILState_STATE gstate;
+    PyThreadState *_save;
+    int nStatus;
 };
 
 #endif // CPYTHREADSTATELOCK_H

@@ -17,7 +17,7 @@ CShowOtherOneWindow::~CShowOtherOneWindow()
     delete ui;
 }
 
-void CShowOtherOneWindow::setlist(QStringList strlis1, QStringList strlis2)
+void CShowOtherOneWindow::setlist(QList<std::pair<QString, QString>> strlis1, QList<std::pair<QString, QString>> strlis2)
 {
     QString temp1;
     QString temp2;
@@ -25,11 +25,11 @@ void CShowOtherOneWindow::setlist(QStringList strlis1, QStringList strlis2)
     for(int i = 0; i < strlis1.length(); i++)
     {
         if (-1 == strlis2.indexOf(strlis1.at(i)))
-            temp1.append(strlis1.at(i)+"\n");
+            temp1.append(strlis1.at(i).second+"\n");
     }
     for(int i = 0; i < strlis2.length(); i++)
     {
-        temp2.append(strlis2.at(i)+"\n");
+        temp2.append(strlis2.at(i).second+"\n");
     }
 
     ui->textEdit1->setText(temp1);

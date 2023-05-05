@@ -164,6 +164,40 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
+   <widget class="QLineEdit" name="addSource">
+    <property name="geometry">
+     <rect>
+      <x>240</x>
+      <y>440</y>
+      <width>101</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>0</string>
+    </property>
+    <property name="placeholderText">
+     <string>输入分数</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="addStuSoucreBtn">
+    <property name="geometry">
+     <rect>
+      <x>450</x>
+      <y>440</y>
+      <width>100</width>
+      <height>40</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>加分</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -205,19 +239,10 @@
     <property name="title">
      <string>关于</string>
     </property>
-   </widget>
-   <widget class="QMenu" name="menuSetting">
-    <property name="title">
-     <string>设置</string>
-    </property>
-    <addaction name="actionDipTemPath"/>
-    <addaction name="actionFlaKey"/>
-    <addaction name="actionSeparator"/>
-    <addaction name="actionBuiFolPath"/>
+    <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuFunction"/>
-   <addaction name="menuSetting"/>
    <addaction name="menuStatistics"/>
    <addaction name="menuAbout"/>
   </widget>
@@ -311,6 +336,11 @@
   <action name="actionBuiFolPath">
    <property name="text">
     <string>保存文件夹</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>关于软件</string>
    </property>
   </action>
  </widget>

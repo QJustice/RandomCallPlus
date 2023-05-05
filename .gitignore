@@ -1,2 +1,4 @@
 # 忽略所有的 .user 文件
 *.user
+# 忽略Python310文件夹
+Python310

@@ -31,8 +31,8 @@ CMainWindow::CMainWindow(QWidget *parent)
         //1.初始化Python解释器，这是调用操作的第一步
         Py_Initialize();
         if (!Py_IsInitialized()) {
-            qDebug("Initial Python failed!");
-            //            emit failed();
+            QMessageBox::critical(this, "错误", QString("Initial Python failed!"));
+            return;
         }
         else {
 
@@ -49,8 +49,8 @@ CMainWindow::CMainWindow(QWidget *parent)
 
     this->ui->setupUi(this);
 
-    this->m_pList = new QStringList;
-    this->m_pLukeyList = new QStringList;
+    this->m_pList = new QList<std::pair<QString, QString>>;
+    this->m_pLukeyList = new QList<std::pair<QString, QString>>;
 
     // 计时器
     this->m_pTimer = new QTimer(this);
@@ -85,12 +85,19 @@ CMainWindow::CMainWindow(QWidget *parent)
     void (QCheckBox::*cheStaSignal)(int arg) = &QCheckBox::stateChanged;
     connect(ui->checkBox, cheStaSignal, this, &CMainWindow::initOneStuOneTimeFuc);
     connect(ui->pushButton, &QPushButton::clicked, this, &CMainWindow::resseting);
+    connect(ui->addStuSoucreBtn, &QPushButton::clicked, this, &CMainWindow::addStudentSource);
+    connect(ui->actionAbout, &QAction::triggered, this, [=](){
+        QMessageBox::about(this, "关于软件", "By 齐家宝&刘畅");
+    });
 }
 
 CMainWindow::~CMainWindow()
 {
     this->m_database.close();
-    Py_Finalize();
+    // 保证子线程调用都结束后
+    PyGILState_Ensure();
+    // 释放python资源
+    Py_FinalizeEx();
     delete ui;
     delete this->m_pList;
     delete this->m_pLukeyList;
@@ -380,7 +387,9 @@ void CMainWindow::handleTimeout()
 {
     // 生成随机数范围为0~未出场人数最大下标减去1
     int randNum = QRandomGenerator::global()->bounded(0,this->m_pList->size());
-    ui->label->setText(QString(this->m_pList->at(randNum)));
+    this->m_lukeyOne = this->m_pList->at(randNum);
+    ui->label->setToolTip(QString(this->m_lukeyOne.first));
+    ui->label->setText(QString(this->m_lukeyOne.second));
 }
 
 void CMainWindow::readList()
@@ -426,7 +435,7 @@ void CMainWindow::readList()
         return;
     }
     QString queryTemp3 = QString(
-                                    "SELECT StuNam                                                      "
+                                    "SELECT Student.StuNum, StuNam                                      "
                                     "FROM StuClass, Student                                             "
                                     "WHERE StuClass.StuNum=Student.StuNum AND StuClass.ClassNum='%1'    "
                                 ).arg(this->claNumAndclaNam.first);
@@ -437,20 +446,23 @@ void CMainWindow::readList()
         QMessageBox::critical(this, "错误", QString("数据库加载失败，失败原因:%1").arg(sqlQuery.lastError().text()));
         this->m_errCode = 1;
     }
+    std::pair<QString, QString> tempBox;
     while(sqlQuery.next())
     {
-        this->m_pList->append(sqlQuery.value(0).toString());
+        tempBox.first = sqlQuery.value(0).toString();
+        tempBox.second = sqlQuery.value(1).toString();
+        this->m_pList->append(tempBox);
         qDebug() << sqlQuery.value(0).toString();
     }
-    QStringList distin;
-    this->m_pList->removeAll(QString("")); // Returns the number of entries removed
-    for(int i = 0; i < this->m_pList->length(); i++)
-    {
-        // 找出是否有相同的
-        if (!distin.contains((*(this->m_pList))[i]))
-            distin.append((*(this->m_pList))[i]);
-    }
-    *(this->m_pList) = distin;
+//    QStringList distin;
+//    this->m_pList->removeAll(QString("")); // Returns the number of entries removed
+//    for(int i = 0; i < this->m_pList->length(); i++)
+//    {
+//        // 找出是否有相同的
+//        if (!distin.contains((*(this->m_pList))[i]))
+//            distin.append((*(this->m_pList))[i]);
+//    }
+//    *(this->m_pList) = distin;
     this->m_allNum = this->m_pList->length();
     this->m_pLukeyList->clear();
     qDebug() << *(this->m_pList) << "read";
@@ -498,17 +510,16 @@ void CMainWindow::startAction()
             this->m_pTimer->stop();
             if (ui->checkBox->isChecked())
             {
-                this->m_pList->removeOne(ui->label->text());
-                this->m_pLukeyList->append(ui->label->text());
+                this->m_pList->removeOne(this->m_lukeyOne);
+                this->m_pLukeyList->append(this->m_lukeyOne);
             }
-            else if (-1 == this->m_pLukeyList->indexOf(ui->label->text()))
+            else if (-1 == this->m_pLukeyList->indexOf(this->m_lukeyOne))
             {
-                this->m_pLukeyList->append(ui->label->text());
+                this->m_pLukeyList->append(this->m_lukeyOne);
             }
             else
                 return;
             ui->labelNum->setText(QString("%1/%2(已出场/全部)").arg(this->m_pLukeyList->length()).arg(this->m_allNum));
-            qDebug() << this->m_pLukeyList;
         }
         else
         {
@@ -788,54 +799,76 @@ void CMainWindow::nowDelStu()
 
 void CMainWindow::nowCrePri()
 {
+    if ("" == this->m_crePriWin->getDipTemPath())
+    {
+        QMessageBox::critical(this, "错误", QString("未找到模板文件"));
+        return;
+    }
     QStringList stuName = this->m_crePriWin->getStuNameList();
-    qDebug() << this->m_crePriWin->getDipTemPath();
-    qDebug() << this->m_crePriWin->getStuNameList();
-    qDebug() << this->m_crePriWin->getFlaKey();
-    qDebug() << this->m_crePriWin->getBuiFolPath();
-
-
+//    qDebug() << stuName;
+//    qDebug() << stuName.size();
+//    qDebug() << this->m_crePriWin->getDipTemPath();
+//    qDebug() << this->m_crePriWin->getStuNameList();
+//    qDebug() << this->m_crePriWin->getFlaKey();
+//    qDebug() << this->m_crePriWin->getBuiFolPath();
+    stuName.removeAll("");
+//    qDebug() << stuName;
+    if (0 == stuName.size())
+    {
+        QMessageBox::critical(this, "错误", QString("获奖名单不可为空"));
+        return;
+    }
     PyObject* pModule = NULL;
     PyObject* pFunc = NULL;
     PyObject* pName = NULL;
-    //2、初始化python系统文件路径，保证可以访问到 .py文件
-    //    PyRun_SimpleString("import sys");
-    //    PyRun_SimpleString("sys.path.append('./')");
 
-    //3、调用python文件名。当前的测试python文件名是 handleword.py
+    // 调用python文件名。当前的测试python文件名是 handleword.py
     // 在使用这个函数的时候，只需要写文件的名称就可以了。不用写后缀。
     class CPyThreadStateLock PyThreadLock; // 获取全局锁
-    qDebug() << "1";
     pModule = PyImport_ImportModule("handleword");
-    //4、调用函数
-    qDebug() << "2";
+    // 调用函数
     pFunc = PyObject_GetAttrString(pModule, "write_word");
-    //5、给python传参数
+    // 给python传参数
     // 函数调用的参数传递均是以元组的形式打包的,2表示参数个数
     // 如果AdditionFc中只有一个参数时，写1就可以了
-    qDebug() << "3";
     PyObject* pArgs = PyTuple_New(4);
 
     // 7、接收python计算好的返回值
-    int nResult;
-    qDebug() << "4";
+    int nResult = -1;
+    int indexStr = 0;
+    int count = 0;
+    int getIt = 0;
+    // 是否取消生成
+    if (QMessageBox::question(this, "提示", QString("需要生成%1个证书，是否开始生成？").arg(stuName.size()), QString("是"), QString("否")))
+        return;
     for (int i = 0; i < stuName.size(); i++)
     {
-//        qDebug() << "i" << i;
-//        qDebug() << "stusize" << stuName.size();
-//        qDebug() << stuName.at(i).toStdString().c_str();
-
-        // 0：第一个参数，传入 int 类型的值 2
+        indexStr = 0;
+        count = 0;
+        while (stuName.at(i).size() > indexStr)
+        {
+//            qDebug() << stuName.at(i).toStdString().at(indexStr);
+            if (' ' == stuName.at(i).at(indexStr))
+                count++;
+            indexStr++;
+        }
+        if (stuName.at(i).size() == count)
+        {
+            stuName.removeAt(i);
+            qDebug() << stuName;
+            continue;
+        }
+        stuName[i] = stuName.at(i).trimmed();
+        // 0：第一个参数，传入 char* 类型的值
         PyTuple_SetItem(pArgs, 0, Py_BuildValue("s", this->m_crePriWin->getDipTemPath().toStdString().c_str()));
-        // 1：第二个参数，传入 int 类型的值 4
+        // 1：第二个参数，传入 char* 类型的值
         PyTuple_SetItem(pArgs, 1, Py_BuildValue("s", stuName.at(i).toStdString().c_str()));
-        // 2：第三个参数，传入 int 类型的值 2
+        // 2：第三个参数，传入 char* 类型的值
         PyTuple_SetItem(pArgs, 2, Py_BuildValue("s", this->m_crePriWin->getFlaKey().toStdString().c_str()));
-        // 3：第四个参数，传入 int 类型的值 4
+        // 3：第四个参数，传入 char* 类型的值
         PyTuple_SetItem(pArgs, 3, Py_BuildValue("s", this->m_crePriWin->getBuiFolPath().toStdString().c_str()));
-//        qDebug() << "is here";
-//        qDebug() << this->m_crePriWin->getFlaKey().toStdString().c_str();
-        // 6、使用C++的python接口调用该函数
+
+        // 使用C++的python接口调用该函数
         PyObject* pReturn = PyObject_CallObject(pFunc, pArgs);
 
 
@@ -843,9 +876,24 @@ void CMainWindow::nowCrePri()
         // 在这里，最需要注意的是：PyArg_Parse的最后一个参数，必须加上“&”符号
         PyArg_Parse(pReturn, "i", &nResult);
         qDebug() << "return result is " << nResult;
+        if (0 == nResult)
+        {
+            getIt++;
+        }
+        else if (1 == nResult)
+        {
+            QMessageBox::critical(this, "错误", QString("获奖名单不可有空名"));
+        }
+        else if (2 == nResult)
+        {
+            QMessageBox::critical(this, "错误", QString("生成文件保存失败"));
+        }
+        else
+        {
+            QMessageBox::critical(this, "错误", QString("未知错误"));
+        }
     }
-
-    qDebug() << "ok";
+    QMessageBox::information(this, "提示", QString("生成完毕，需要生成 %1，成功生成 %2").arg(QString::number(stuName.size()), QString::number(getIt)));
 }
 
 void CMainWindow::claNumEdiSetClaNam()
@@ -979,4 +1027,52 @@ void CMainWindow::actionMaxSourceFun()
 void CMainWindow::actionMinSourceFun()
 {
     this->statisticWindow(STU_SOURCE_MIN);
+}
+
+void CMainWindow::addStudentSource()
+{
+    if ("开始" == ui->label->text())
+    {
+        QMessageBox::critical(this, "错误", QString("当前学生非法"));
+        return;
+    }
+    if ("" == ui->addSource->text())
+    {
+        ui->addSource->setText("0");
+        return;
+    }
+    if (!this->m_database.open())
+    {
+        QMessageBox::critical(this, "错误", QString("数据库表初始化失败，失败原因:%1").arg(this->m_database.lastError().text()));
+        return;
+    }
+    QSqlQuery sqlQuery(this->m_database); // 用于执行sql语句的对象
+    QString queryTemp = QString(
+                                "SELECT StuSource                      "\
+                                "FROM StuData                          "\
+                                "WHERE StuNum = '%1'                   "
+                                ).arg(this->m_lukeyOne.first);
+    sqlQuery.prepare(queryTemp);
+    // 执行sql语句
+    if (!sqlQuery.exec())
+    {
+        QMessageBox::critical(this, "错误", QString("数据库查询异常，失败原因:%1").arg(sqlQuery.lastError().text()));
+        return;
+    }
+    sqlQuery.next();
+    qDebug() << sqlQuery.value(0).toDouble() + ui->addSource->text().toDouble();
+
+    queryTemp = QString(
+                        "UPDATE StuData                             "\
+                        "SET StuSource = '%1'                       "\
+                        "WHERE StuNum = '%2'                        "
+                        ).arg(QString::number(sqlQuery.value(0).toDouble() + ui->addSource->text().toDouble()),this->m_lukeyOne.first);
+    sqlQuery.prepare(queryTemp);
+    qDebug() << queryTemp;
+    // 执行sql语句
+    if (!sqlQuery.exec())
+    {
+        QMessageBox::critical(this, "错误", QString("数据库查询异常，失败原因:%1").arg(sqlQuery.lastError().text()));
+        return;
+    }
 }
