@@ -15,6 +15,7 @@ CShowOtherOneWindow::CShowOtherOneWindow(QWidget *parent) :
 CShowOtherOneWindow::~CShowOtherOneWindow()
 {
     delete ui;
+    emit this->winIsClose();
 }
 
 void CShowOtherOneWindow::setlist(QList<std::pair<QString, QString>> strlis1, QList<std::pair<QString, QString>> strlis2)

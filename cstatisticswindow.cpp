@@ -22,7 +22,9 @@ CStatisticsWindow::~CStatisticsWindow()
         delete this->m_pTableItemList->at(i);
         this->m_pTableItemList->removeAt(i);
     }
+
     qDebug() << this->m_pTableItemList->size();
+    delete this->m_pTableItemList;
 }
 
 void CStatisticsWindow::setTableHead(QStringList _tabelHeads)

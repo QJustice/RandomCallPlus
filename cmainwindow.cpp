@@ -80,6 +80,7 @@ CMainWindow::CMainWindow(QWidget *parent)
     connect(ui->actionMinAnswer, &QAction::triggered, this, &CMainWindow::actionMinAnsFun);
     connect(ui->actionMaxScore, &QAction::triggered, this, &CMainWindow::actionMaxSourceFun);
     connect(ui->actionMinScore, &QAction::triggered, this, &CMainWindow::actionMinSourceFun);
+    connect(ui->actionImpStuNam, &QAction::triggered, this, &CMainWindow::addStudentlist);
     connect(ui->actionCreateDiploma, &QAction::triggered, this, &CMainWindow::createPrizeWindow);
     // void (QComboBox::*comCurTextChaSignal)(const QString &text)= &QComboBox::currentTextChanged; //带参函数指针
     void (QCheckBox::*cheStaSignal)(int arg) = &QCheckBox::stateChanged;
@@ -486,6 +487,10 @@ void CMainWindow::showOtherOne()
         this->m_showOthOneWin->activateWindow();
     this->m_showOthOneWin->setlist(*(this->m_pList), *(this->m_pLukeyList));
     this->m_showOthOneWin->show();
+    // 窗口被释放时需要赋空指针，为下一次申请窗口资源做准备
+    connect(this->m_showOthOneWin, &CShowOtherOneWindow::winIsClose, this, [=]()mutable{
+        this->m_showOthOneWin = nullptr;
+    });
 }
 
 void CMainWindow::showSystemTime()
@@ -896,6 +901,15 @@ void CMainWindow::nowCrePri()
     QMessageBox::information(this, "提示", QString("生成完毕，需要生成 %1，成功生成 %2").arg(QString::number(stuName.size()), QString::number(getIt)));
 }
 
+void CMainWindow::nowImportStuData()
+{
+    std::map<QString, QStringList>* stuData = this->m_stuDataListWin->getStuData();
+    for(auto it : *stuData){
+        qDebug() << it.first <<" "<< it.second;
+    }
+    delete stuData;
+}
+
 void CMainWindow::claNumEdiSetClaNam()
 {
     QSqlQuery sqlQuery(this->m_database); // 用于执行sql语句的对象
@@ -1075,4 +1089,11 @@ void CMainWindow::addStudentSource()
         QMessageBox::critical(this, "错误", QString("数据库查询异常，失败原因:%1").arg(sqlQuery.lastError().text()));
         return;
     }
+}
+
+void CMainWindow::addStudentlist()
+{
+    this->m_stuDataListWin = new CStudentDataList;
+    this->m_stuDataListWin->show();
+    connect(this->m_stuDataListWin, &CStudentDataList::importDatacliked, this, &CMainWindow::nowImportStuData);
 }

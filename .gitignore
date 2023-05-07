@@ -2,3 +2,5 @@
 *.user
 # 忽略Python310文件夹
 Python310
+# 忽略QXlsx文件夹
+QXlsx

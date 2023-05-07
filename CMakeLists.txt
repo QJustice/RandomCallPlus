@@ -10,15 +10,18 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(PYTHON_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Python310/include")
-set(PYTHON_LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Python310/Lib")
 set(PYTHON_LIBS_LINK_310 "${CMAKE_CURRENT_SOURCE_DIR}/Python310/libs/python310.lib")
 set(PYTHON_LIBS_LINK_3 "${CMAKE_CURRENT_SOURCE_DIR}/Python310/libs/python3.lib")
+
+set(QXLSX_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Qxlsx/include")
+set(QXLSX_LIBS_LINK "${CMAKE_CURRENT_SOURCE_DIR}/QXlsx/lib/libQXlsxQt6.a")
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(Qt6 REQUIRED COMPONENTS Sql)
+
 include_directories(${PYTHON_INCLUDE_DIR})
-include_directories(${PYTHON_LIB_DIR})
+include_directories(${QXLSX_INCLUDE_DIR})
 
 set(PROJECT_SOURCES
     handleword.py
@@ -36,6 +39,7 @@ set(PROJECT_SOURCES
     cshowotheronewindow.h cshowotheronewindow.cpp cshowotheronewindow.ui
     cstatisticswindow.h cstatisticswindow.cpp cstatisticswindow.ui
     ccreateprizewindow.h ccreateprizewindow.cpp ccreateprizewindow.ui
+    cstudentdatalist.h cstudentdatalist.cpp cstudentdatalist.ui
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -65,6 +69,7 @@ target_link_libraries(RandomCallPlus PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(RandomCallPlus PRIVATE Qt6::Sql)
 target_link_libraries(RandomCallPlus PRIVATE ${PYTHON_LIBS_LINK_310})
 target_link_libraries(RandomCallPlus PRIVATE ${PYTHON_LIBS_LINK_3})
+target_link_libraries(RandomCallPlus PRIVATE ${QXLSX_LIBS_LINK})
 
 set_target_properties(RandomCallPlus PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com

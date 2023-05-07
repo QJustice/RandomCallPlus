@@ -15,7 +15,8 @@ public:
     explicit CShowOtherOneWindow(QWidget *parent = nullptr);
     ~CShowOtherOneWindow();
     void setlist(QList<std::pair<QString, QString>> strlis1, QList<std::pair<QString, QString>> strlis2);
-
+signals:
+    void winIsClose();
 private:
     Ui::CShowOtherOneWindow *ui;
 };
