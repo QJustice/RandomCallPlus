@@ -46,6 +46,7 @@ private:
     QTime m_randTime;                                                       // 生成随机数
     QList<std::pair<QString, QString>> *m_pList = nullptr;                  // 名单数据
     QList<std::pair<QString, QString>> *m_pLukeyList = nullptr;             // 已经出场名单
+    QList<std::pair<QString, QString>> *m_stuDataList;
     QDateTime m_dateTime;                                                   // 系统时间
     QSqlDatabase m_database;                                                // 数据库对象
     CCreateClassWindow *m_creClsWin = nullptr;                              // 创建班级界面
@@ -58,7 +59,7 @@ private:
     CStatisticsWindow *m_statisticWin = nullptr;                            // 统计数据窗口
     CCreatePrizeWindow *m_crePriWin = nullptr;                              // 生成奖状窗口
     std::pair<QString, QString> m_lukeyOne;                                 // 当前被选中在的学生
-    CStudentDataList *m_stuDataListWin = nullptr;                           // 导入学生窗口
+    CStudentDataList *m_stuDataListWin = nullptr;                           // 导入/导出学生窗口
 
     int m_errCode = 0;                                                      // 状态码：0读取名单文件成功 1没有找到名单文件，2名单文件读取失败
     int m_allNum = 0;                                                       // 所有学生数量
@@ -93,6 +94,7 @@ private slots:
     void actionMinSourceFun();                                              // 最少得分
     void addStudentSource();                                                // 增加分数
     void addStudentlist();                                                  // 导入学生
+    void expStudentlist();                                                  // 导出学生
 
 };
 

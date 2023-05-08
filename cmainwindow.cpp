@@ -4,6 +4,9 @@
 #include "config.h"
 #include "cpythreadstatelock.h"
 
+#include <xlsxdocument.h>
+#include <xlsxcellrange.h>
+
 #include <QDebug>
 #define PY_SSIZE_T_CLEAN
 #undef slots
@@ -81,6 +84,7 @@ CMainWindow::CMainWindow(QWidget *parent)
     connect(ui->actionMaxScore, &QAction::triggered, this, &CMainWindow::actionMaxSourceFun);
     connect(ui->actionMinScore, &QAction::triggered, this, &CMainWindow::actionMinSourceFun);
     connect(ui->actionImpStuNam, &QAction::triggered, this, &CMainWindow::addStudentlist);
+    connect(ui->actionExpStuNam, &QAction::triggered, this, &CMainWindow::expStudentlist);
     connect(ui->actionCreateDiploma, &QAction::triggered, this, &CMainWindow::createPrizeWindow);
     // void (QComboBox::*comCurTextChaSignal)(const QString &text)= &QComboBox::currentTextChanged; //带参函数指针
     void (QCheckBox::*cheStaSignal)(int arg) = &QCheckBox::stateChanged;
@@ -102,6 +106,8 @@ CMainWindow::~CMainWindow()
     delete ui;
     delete this->m_pList;
     delete this->m_pLukeyList;
+    if (nullptr == this->m_stuDataList)
+        delete this->m_stuDataList;
 }
 
 void CMainWindow::initDatabase()
@@ -525,6 +531,24 @@ void CMainWindow::startAction()
             else
                 return;
             ui->labelNum->setText(QString("%1/%2(已出场/全部)").arg(this->m_pLukeyList->length()).arg(this->m_allNum));
+            if (!this->m_database.open())
+            {
+                QMessageBox::critical(this, "错误", QString("数据库表初始化失败，失败原因:%1").arg(this->m_database.lastError().text()));
+                return;
+            }
+            QSqlQuery sqlQuery(this->m_database); // 用于执行sql语句的对象
+            QString queryTemp = QString(
+                                        "UPDATE StuData                                 "\
+                                        "SET StuAnsTime = StuAnsTime + 1                "\
+                                        "WHERE StuNum = '%1'                            "
+                                    ).arg(this->m_lukeyOne.first);
+            sqlQuery.prepare(queryTemp);
+            // 执行sql语句
+            if (!sqlQuery.exec())
+            {
+                QMessageBox::critical(this, "错误", QString("数据库操作失败，失败原因:%1").arg(sqlQuery.lastError().text()));
+                return;
+            }
         }
         else
         {
@@ -903,11 +927,159 @@ void CMainWindow::nowCrePri()
 
 void CMainWindow::nowImportStuData()
 {
+    if (!this->m_database.open())
+    {
+        QMessageBox::critical(this, "错误", QString("数据库表初始化失败，失败原因:%1").arg(this->m_database.lastError().text()));
+        return;
+    }
+    QString queryTemp1 = QString(
+                                    "CREATE TABLE IF NOT EXISTS StuClass                            "\
+                                    "(                                                              "\
+                                    "    StuNum TEXT                                                "\
+                                    "           NOT NULL                                            "\
+                                    "           REFERENCES Student (StuNum) ON DELETE CASCADE       "\
+                                    "                                       ON UPDATE CASCADE       "\
+                                    "                                       MATCH FULL,             "\
+                                    "    ClassNum TEXT                                              "\
+                                    "             REFERENCES Class (ClassNum) ON DELETE NO ACTION   "\
+                                    "                                         ON UPDATE NO ACTION   "\
+                                    "                                         MATCH FULL            "\
+                                    ")STRICT                                                        "
+                                );
+    QString queryTemp2 = QString(
+                                    "CREATE TABLE IF NOT EXISTS Student"\
+                                    "(                                 "\
+                                    "    StuNum TEXT NOT NULL          "\
+                                    "           PRIMARY KEY            "\
+                                    "           UNIQUE,                "\
+                                    "    StuNam TEXT NOT NULL          "\
+                                    ")STRICT                           "
+                                );
+    QString queryTemp3 = QString(
+                                    "CREATE TABLE IF NOT EXISTS StuData                                 "
+                                    "(                                                                  "
+                                    "    StuNum TEXT PRIMARY KEY                                        "
+                                    "           UNIQUE                                                  "
+                                    "           NOT NULL                                                "
+                                    "           REFERENCES Student (StuNum) ON DELETE NO ACTION         "
+                                    "                                       ON UPDATE NO ACTION         "
+                                    "                                       MATCH [FULL],               "
+                                    "    StuAnsTime    INT  DEFAULT (0),                                "
+                                    "    StuAnsRigTime INT  DEFAULT (0),                                "
+                                    "    StuSource     TEXT DEFAULT (0)                                 "
+                                    ")STRICT                                                            "
+                                );
+    QSqlQuery sqlQuery(this->m_database); // 用于执行sql语句的对象
+    sqlQuery.prepare(queryTemp1);
+    // 执行sql语句
+    if (!sqlQuery.exec())
+    {
+        QMessageBox::critical(this, "错误", QString("数据加载失败，失败原因:%1").arg(sqlQuery.lastError().text()));
+        return;
+    }
+    sqlQuery.prepare(queryTemp2);
+    if (!sqlQuery.exec())
+    {
+        QMessageBox::critical(this, "错误", QString("数据加载失败，失败原因:%1").arg(sqlQuery.lastError().text()));
+        return;
+    }
+    sqlQuery.prepare(queryTemp3);
+    if (!sqlQuery.exec())
+    {
+        QMessageBox::critical(this, "错误", QString("数据加载失败，失败原因:%1").arg(sqlQuery.lastError().text()));
+        return;
+    }
     std::map<QString, QStringList>* stuData = this->m_stuDataListWin->getStuData();
-    for(auto it : *stuData){
+    if (QMessageBox::No == QMessageBox::question(this, "提示", QString("检测到%1个学生是否进行添加操作？").arg(stuData->size() - 1)))
+        return;
+    int addCount = 0;
+    for(auto it : *stuData)
+    {
         qDebug() << it.first <<" "<< it.second;
+        if ("HEAD" == it.first)
+            continue;
+        QString studentNumber = it.first;
+        QString studentName = it.second.at(0);
+
+        if ("" == studentNumber || "" == studentName)
+        {
+            QMessageBox::information(this, "提示", "学生编号或学生名称不可为空");
+            return;
+        }
+        QString queryTemp4 = QString(
+                                        "SELECT COUNT(*)              "\
+                                        "FROM Student WHERE StuNum = '%1'   "
+                                    ).arg(studentNumber);
+
+        sqlQuery.prepare(queryTemp4);
+        // 执行sql语句
+        if (!sqlQuery.exec())
+        {
+            QMessageBox::critical(this, "错误", QString("数据加载失败，失败原因:%1").arg(sqlQuery.lastError().text()));
+            return;
+        }
+        else if (sqlQuery.next(),0 != sqlQuery.value(0).toInt())
+        {
+            QMessageBox::information(this, "提示", "已存在此学生, 不可重复添加");
+            return;
+        }
+        QString queryTemp5 = QString("INSERT INTO Student(StuNum, StuNam) "
+                                    "VALUES ('%1', '%2')").arg(studentNumber, studentName);
+        sqlQuery.prepare(queryTemp5);
+        // 执行sql语句
+        if (!sqlQuery.exec())
+        {
+            QMessageBox::critical(this, "错误", QString("学生添加失败，失败原因:%1").arg(sqlQuery.lastError().text()));
+            return;
+        }
+        QString queryTemp6 = QString("INSERT INTO StuClass(StuNum, ClassNum) "
+                                     "VALUES ('%1', '%2')").arg(studentNumber, this->claNumAndclaNam.first);
+        sqlQuery.prepare(queryTemp6);
+        if (!sqlQuery.exec())
+        {
+            QMessageBox::critical(this, "错误", QString("学生班级信息加载失败，失败原因:%1\n即将自动回滚上一步操作").arg(sqlQuery.lastError().text()));
+            // 添加数据库回滚操作
+            QString queryTemp4 = QString("DELETE  FROM  Student WHERE  StuNum = '%1' AND StuNam = '%2'").arg(studentNumber, studentName);
+            sqlQuery.prepare(queryTemp4);
+            // 执行sql语句
+            if (!sqlQuery.exec())
+            {
+                QMessageBox::critical(this, "错误", QString("数据回滚失败,请检查学生数据，失败原因:%1").arg(sqlQuery.lastError().text()));
+            }
+            else
+            {
+                QMessageBox::information(this, "提示", "数据回滚成功");
+            }
+            return;
+        }
+        QString queryTemp7 = QString("INSERT INTO StuData(StuNum) "
+                                     "VALUES ('%1')").arg(studentNumber);
+        sqlQuery.prepare(queryTemp7);
+        if (!sqlQuery.exec())
+        {
+            QMessageBox::critical(this, "错误", QString("学生班级信息加载失败，失败原因:%1\n即将自动回滚上一步操作").arg(sqlQuery.lastError().text()));
+            if (!sqlQuery.exec("PRAGMA foreign_keys=ON"))
+            {
+                QMessageBox::critical(this, "错误", QString("数据库异常"));
+            }
+            // 添加数据库回滚操作
+            QString queryTemp8 = QString("DELETE  FROM  Student WHERE  StuNum = '%1' AND StuNam = '%2'").arg(studentNumber, studentName);
+            sqlQuery.prepare(queryTemp8);
+            // 执行sql语句
+            if (!sqlQuery.exec())
+            {
+                QMessageBox::critical(this, "错误", QString("数据回滚失败,请检查学生数据，失败原因:%1").arg(sqlQuery.lastError().text()));
+            }
+            else
+            {
+                QMessageBox::information(this, "提示", "数据回滚成功");
+            }
+            return;
+        }
+        addCount++;
     }
     delete stuData;
+    QMessageBox::information(this, "提示", QString("需要添加学生数为%1 ，已成功添加%2").arg(QString::number(stuData->size() - 1), QString::number(addCount)));
 }
 
 void CMainWindow::claNumEdiSetClaNam()
@@ -1074,7 +1246,6 @@ void CMainWindow::addStudentSource()
         return;
     }
     sqlQuery.next();
-    qDebug() << sqlQuery.value(0).toDouble() + ui->addSource->text().toDouble();
 
     queryTemp = QString(
                         "UPDATE StuData                             "\
@@ -1082,18 +1253,114 @@ void CMainWindow::addStudentSource()
                         "WHERE StuNum = '%2'                        "
                         ).arg(QString::number(sqlQuery.value(0).toDouble() + ui->addSource->text().toDouble()),this->m_lukeyOne.first);
     sqlQuery.prepare(queryTemp);
-    qDebug() << queryTemp;
     // 执行sql语句
     if (!sqlQuery.exec())
     {
         QMessageBox::critical(this, "错误", QString("数据库查询异常，失败原因:%1").arg(sqlQuery.lastError().text()));
         return;
     }
+    if (!this->m_database.open())
+    {
+        QMessageBox::critical(this, "错误", QString("数据库表初始化失败，失败原因:%1").arg(this->m_database.lastError().text()));
+        return;
+    }
+    queryTemp = QString(
+                        "UPDATE StuData                                 "\
+                        "SET StuAnsRigTime = StuAnsRigTime + 1          "\
+                        "WHERE StuNum = '%1'                            "
+                        ).arg(this->m_lukeyOne.first);
+    sqlQuery.prepare(queryTemp);
+    // 执行sql语句
+    if (!sqlQuery.exec())
+    {
+        QMessageBox::critical(this, "错误", QString("数据库操作失败，失败原因:%1").arg(sqlQuery.lastError().text()));
+        return;
+    }
+    QMessageBox::information(this, "提示", "加分成功");
 }
 
 void CMainWindow::addStudentlist()
 {
+    if ("请选择班级" == ui->nowClaLab->text())
+    {
+        QMessageBox::critical(this, "错误", QString("当前班级非法"));
+        return;
+    }
     this->m_stuDataListWin = new CStudentDataList;
+    this->m_stuDataListWin->setPushButtonText("导入");                        //
     this->m_stuDataListWin->show();
-    connect(this->m_stuDataListWin, &CStudentDataList::importDatacliked, this, &CMainWindow::nowImportStuData);
+    connect(this->m_stuDataListWin, &CStudentDataList::pushButtoncliked, this, &CMainWindow::nowImportStuData);
+}
+
+void CMainWindow::expStudentlist()
+{
+    if ("请选择班级" == ui->nowClaLab->text())
+    {
+        QMessageBox::critical(this, "错误", QString("当前班级非法"));
+        return;
+    }
+    this->m_errCode = 0;
+    if (!this->m_database.open())
+    {
+        QMessageBox::critical(this, "错误", QString("数据库表初始化失败，失败原因:%1").arg(this->m_database.lastError().text()));
+        this->m_errCode = 1;
+        return;
+    }
+    QSqlQuery sqlQuery(this->m_database); // 用于执行sql语句的对象
+    QString queryTemp1 = QString("SELECT COUNT(*) FROM sqlite_master where type ='table' and name = 'StuClass'");
+    sqlQuery.prepare(queryTemp1);
+    // 执行sql语句
+    if (!sqlQuery.exec())
+    {
+        QMessageBox::critical(this, "错误", QString("数据库加载失败，失败原因:%1").arg(sqlQuery.lastError().text()));
+        this->m_errCode = 1;
+        return;
+    }
+    else if (sqlQuery.next(),0 == sqlQuery.value(0).toInt())
+    {
+        QMessageBox::information(this, "提示", "不存在可用数据");
+        this->m_errCode = 2;
+        return;
+    }
+    QString queryTemp2 = QString("SELECT COUNT(*) FROM StuClass WHERE ClassNum='%1'").arg(this->claNumAndclaNam.first);
+    sqlQuery.prepare(queryTemp2);
+    // 执行sql语句
+    if (!sqlQuery.exec())
+    {
+        QMessageBox::critical(this, "错误", QString("数据库加载失败，失败原因:%1").arg(sqlQuery.lastError().text()));
+        this->m_errCode = 1;
+        return;
+    }
+    else if (sqlQuery.next(),0 == sqlQuery.value(0).toInt())
+    {
+        QMessageBox::information(this, "提示", "当前班级没有学生");
+        this->m_errCode = 2;
+        return;
+    }
+    QString queryTemp3 = QString(
+                                    "SELECT Student.StuNum, StuNam                                      "
+                                    "FROM StuClass, Student                                             "
+                                    "WHERE StuClass.StuNum=Student.StuNum AND StuClass.ClassNum='%1'    "
+                                ).arg(this->claNumAndclaNam.first);
+    sqlQuery.prepare(queryTemp3);
+    // 执行sql语句
+    if (!sqlQuery.exec())
+    {
+        QMessageBox::critical(this, "错误", QString("数据库加载失败，失败原因:%1").arg(sqlQuery.lastError().text()));
+        this->m_errCode = 1;
+    }
+    this->m_stuDataList = new QList<std::pair<QString, QString>>;
+    std::pair<QString, QString> tempBox;
+    while(sqlQuery.next())
+    {
+        tempBox.first = sqlQuery.value(0).toString();
+        tempBox.second = sqlQuery.value(1).toString();
+        this->m_stuDataList->append(tempBox);
+        qDebug() << sqlQuery.value(0).toString();
+    }
+    this->m_stuDataListWin = new CStudentDataList;
+    this->m_stuDataListWin->setPushButtonText("导出");
+    this->m_stuDataListWin->setStuDataList(this->m_stuDataList);
+    this->m_stuDataList = nullptr;
+    this->m_stuDataListWin->show();
 }

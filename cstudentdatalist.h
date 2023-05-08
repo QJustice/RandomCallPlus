@@ -16,22 +16,27 @@ class CStudentDataList : public QMainWindow
 public:
     explicit CStudentDataList(QWidget *parent = nullptr);
     ~CStudentDataList();
+    void setPushButtonText(QString _text);
     void setTableHead(QStringList _tabelHeads);                          // 设置表头
     void setTabelItem(int _row, int _column, QString _item);
     void setTabelColRowCount(int _row, int _column);
     void setTableDataFromExcle(QString filePath);
+    void setStuDataList(QList<std::pair<QString, QString>>* _stuDataList);
     void saveStuData(QString floderPath);
     std::map<QString, QStringList>* getStuData();
+
 signals:
-    void importDatacliked();
+    void pushButtoncliked();
 
 public slots:
     void getFilePath();
-    void importData();
+    void getFolderPath();
+    void pushButtonCliked();
 private:
     Ui::CStudentDataList *ui;
-    QList<QTableWidgetItem*> *m_pTableItemList;
-    std::map<QString, QStringList> *m_stuDataList;
+    QList<QTableWidgetItem*> *m_pTableItemList = nullptr;
+    std::map<QString, QStringList> *m_stuDataMap = nullptr;
+    QList<std::pair<QString, QString>> *m_stuDataList = nullptr;
 };
 
 #endif // CSTUDENTDATALIST_H
