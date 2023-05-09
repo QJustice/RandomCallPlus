@@ -833,6 +833,11 @@ void CMainWindow::nowCrePri()
         QMessageBox::critical(this, "错误", QString("未找到模板文件"));
         return;
     }
+    if (!this->m_crePriWin->getDipTemPath().contains(".docx"))
+    {
+        QMessageBox::critical(this, "error", "只可选取.docx文件");
+        return;
+    }
     QStringList stuName = this->m_crePriWin->getStuNameList();
 //    qDebug() << stuName;
 //    qDebug() << stuName.size();
