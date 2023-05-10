@@ -723,8 +723,42 @@ void CMainWindow::nowDelCla()
     {
         this->m_delClsWin->setClassName(sqlQuery.value(1).toString());
     }
-    QString queryTemp2 = QString("DELETE  FROM  Class WHERE  ClassNum = '%1' AND ClassNam = '%2'").arg(classNumber, className);
+    QString queryTemp2 = QString(
+                                    "SELECT StuNum                              "\
+                                    "FROM StuClass                              "\
+                                    "WHERE ClassNum = '%1'                     "
+                                ).arg(classNumber);
     sqlQuery.prepare(queryTemp2);
+    // 执行sql语句
+    if (!sqlQuery.exec())
+        QMessageBox::critical(this, "错误", QString("查询失败，失败原因:%1").arg(sqlQuery.lastError().text()));
+    else
+    {
+        QString queryTemp3 =  QString("");
+        QSqlQuery sqlQueryTemp(this->m_database); // 用于执行sql语句的对象
+
+        // 执行sql语句
+        if (!sqlQueryTemp.exec("PRAGMA foreign_keys=ON"))
+        {
+            QMessageBox::critical(this, "错误", QString("数据库异常"));
+        }
+        while(sqlQuery.next())
+        {
+            queryTemp3 = QString("DELETE FROM Student WHERE StuNum = '%1'").arg(sqlQuery.value(0).toString());
+            sqlQueryTemp.prepare(queryTemp3);
+            if (!sqlQueryTemp.exec())
+            {
+                QMessageBox::critical(this, "错误", QString("数据加载失败，失败原因:%1").arg(sqlQuery.lastError().text()));
+                return;
+            }
+        }
+    }
+    if (!sqlQuery.exec("PRAGMA foreign_keys=ON"))
+    {
+        QMessageBox::critical(this, "错误", QString("数据库异常"));
+    }
+    QString queryTemp4 = QString("DELETE  FROM  Class WHERE  ClassNum = '%1' AND ClassNam = '%2'").arg(classNumber, className);
+    sqlQuery.prepare(queryTemp4);
     // 执行sql语句
     if (!sqlQuery.exec())
         QMessageBox::critical(this, "错误", QString("班级删除失败，失败原因:%1").arg(sqlQuery.lastError().text()));
@@ -732,6 +766,8 @@ void CMainWindow::nowDelCla()
     {
         this->m_delClsWin->close();
         QMessageBox::information(this, "提示", "班级删除成功");
+        if (classNumber == ui->nowClaLab->text().left(3))
+            ui->nowClaLab->setText("请选择班级");
     }
 }
 
