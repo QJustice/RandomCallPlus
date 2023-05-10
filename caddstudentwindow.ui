@@ -138,7 +138,7 @@
   </action>
   <action name="actionExit">
    <property name="text">
-    <string>Exit</string>
+    <string>退出</string>
    </property>
   </action>
  </widget>

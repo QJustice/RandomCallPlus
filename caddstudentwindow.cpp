@@ -12,6 +12,8 @@ CAddStudentWindow::CAddStudentWindow(QWidget *parent) :
     this->setAttribute(Qt::WA_DeleteOnClose);
     this->setWindowModality(Qt::ApplicationModal);
     connect(ui->addStuBtn, &QPushButton::clicked, this, &CAddStudentWindow::isAddStu);
+    connect(ui->actionAddStu, &QAction::triggered, this, &CAddStudentWindow::isAddStu);
+    connect(ui->actionExit, &QAction::triggered, this, &CAddStudentWindow::close);
 }
 
 CAddStudentWindow::~CAddStudentWindow()

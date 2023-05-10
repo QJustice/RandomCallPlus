@@ -150,8 +150,8 @@ void CMainWindow::addStudenWindow()
                                     "                                       ON UPDATE CASCADE       "\
                                     "                                       MATCH FULL,             "\
                                     "    ClassNum TEXT                                              "\
-                                    "             REFERENCES Class (ClassNum) ON DELETE NO ACTION   "\
-                                    "                                         ON UPDATE NO ACTION   "\
+                                    "             REFERENCES Class (ClassNum) ON DELETE CASCADE     "\
+                                    "                                         ON UPDATE CASCADE     "\
                                     "                                         MATCH FULL            "\
                                     ")STRICT                                                        "
                                 );
@@ -170,8 +170,8 @@ void CMainWindow::addStudenWindow()
                                     "    StuNum TEXT PRIMARY KEY                                        "
                                     "           UNIQUE                                                  "
                                     "           NOT NULL                                                "
-                                    "           REFERENCES Student (StuNum) ON DELETE NO ACTION         "
-                                    "                                       ON UPDATE NO ACTION         "
+                                    "           REFERENCES Student (StuNum) ON DELETE CASCADE           "
+                                    "                                       ON UPDATE CASCADE           "
                                     "                                       MATCH [FULL],               "
                                     "    StuAnsTime    INT  DEFAULT (0),                                "
                                     "    StuAnsRigTime INT  DEFAULT (0),                                "
@@ -797,7 +797,7 @@ void CMainWindow::nowDelStu()
     // 执行sql语句
     if (!sqlQuery.exec())
         // this->claNumAndclaNam.first
-        QMessageBox::critical(this, "错误", QString("学生删除失败，失败原因:%1").arg(sqlQuery.lastError().text()));
+        QMessageBox::critical(this, "错误", QString("数据库查询，失败原因:%1").arg(sqlQuery.lastError().text()));
     else if (sqlQuery.last(), 0 > sqlQuery.at())
     {
         QMessageBox::information(this, "提示", "不存在任何学生");
@@ -1231,7 +1231,7 @@ void CMainWindow::initOneStuOneTimeFuc(int arg)
 
 void CMainWindow::resseting()
 {
-    ui->label->setText("GO");
+    ui->label->setText("开始");
     ui->labelNum->setText("0/0(已出场/全部)");
     this->m_pList->clear();
     this->m_pLukeyList->clear();
