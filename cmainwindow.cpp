@@ -20,6 +20,7 @@
 #include <QSqlError>
 #include <QMessageBox>
 #include <QRandomGenerator>
+#include <QFile>
 
 
 CMainWindow::CMainWindow(QWidget *parent)
@@ -35,6 +36,9 @@ CMainWindow::CMainWindow(QWidget *parent)
         Py_Initialize();
         if (!Py_IsInitialized()) {
             QMessageBox::critical(this, "错误", QString("Initial Python failed!"));
+            // python 环境初始化失败 致命错误关闭程序
+            QApplication* app;
+            app->exit(0);
             return;
         }
         else {
@@ -845,6 +849,22 @@ void CMainWindow::nowCrePri()
 //    qDebug() << this->m_crePriWin->getStuNameList();
 //    qDebug() << this->m_crePriWin->getFlaKey();
 //    qDebug() << this->m_crePriWin->getBuiFolPath();
+    if ("" == this->m_crePriWin->getDipTemPath())
+    {
+        QMessageBox::critical(this, "错误", QString("模板文件不可为空"));
+    }
+    if (!this->m_crePriWin->getDipTemPath().contains(".docx"))
+    {
+        QMessageBox::critical(this, "错误", QString("模板文件只能为.docx文件"));
+    }
+    if ("" == this->m_crePriWin->getFlaKey())
+    {
+        QMessageBox::critical(this, "错误", QString("标记关键字不可为空"));
+    }
+    if ("" == this->m_crePriWin->getBuiFolPath())
+    {
+        QMessageBox::critical(this, "错误", QString("保存路径不可为空"));
+    }
     stuName.removeAll("");
 //    qDebug() << stuName;
     if (0 == stuName.size())
@@ -854,14 +874,23 @@ void CMainWindow::nowCrePri()
     }
     PyObject* pModule = NULL;
     PyObject* pFunc = NULL;
-    PyObject* pName = NULL;
 
     // 调用python文件名。当前的测试python文件名是 handleword.py
     // 在使用这个函数的时候，只需要写文件的名称就可以了。不用写后缀。
+    QString filePath = "handleword.py";
+    QFile file(filePath);
+    if(!file.exists())
+    {
+        QMessageBox::critical(this, "error", "python 文件不存在");
+        return;
+    }
+
     class CPyThreadStateLock PyThreadLock; // 获取全局锁
     pModule = PyImport_ImportModule("handleword");
     // 调用函数
     pFunc = PyObject_GetAttrString(pModule, "write_word");
+    qDebug() << pModule;
+    qDebug() << pFunc;
     // 给python传参数
     // 函数调用的参数传递均是以元组的形式打包的,2表示参数个数
     // 如果AdditionFc中只有一个参数时，写1就可以了
@@ -916,11 +945,19 @@ void CMainWindow::nowCrePri()
         }
         else if (1 == nResult)
         {
-            QMessageBox::critical(this, "错误", QString("获奖名单不可有空名"));
+            QMessageBox::critical(this, "错误", QString("模板文件打开失败"));
         }
         else if (2 == nResult)
         {
+            QMessageBox::critical(this, "错误", QString("获奖名单不可有空名"));
+        }
+        else if (3 == nResult)
+        {
             QMessageBox::critical(this, "错误", QString("生成文件保存失败"));
+        }
+        else if (4 == nResult)
+        {
+            QMessageBox::critical(this, "错误", QString("未找到标记关键字"));
         }
         else
         {

@@ -7,8 +7,8 @@ CChangeClassWindow::CChangeClassWindow(QWidget *parent) :
     ui(new Ui::CChangeClassWindow)
 {
     ui->setupUi(this);
-    this->setWindowFlags(windowFlags()& ~Qt::WindowMaximizeButtonHint);
-    this->setFixedSize(CHANGE_CLASS_WINDOW_WIDE, CHANGE_CLASS_WINDOW_HIGH);
+//    this->setWindowFlags(windowFlags()& ~Qt::WindowMaximizeButtonHint);
+//    this->setFixedSize(CHANGE_CLASS_WINDOW_WIDE, CHANGE_CLASS_WINDOW_HIGH);
     this->setAttribute(Qt::WA_DeleteOnClose);
     this->setWindowModality(Qt::ApplicationModal);
     void (QComboBox::*comCurTextChaSignal)(const QString &text)= &QComboBox::currentTextChanged; //带参函数指针

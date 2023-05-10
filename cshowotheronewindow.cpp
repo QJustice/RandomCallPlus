@@ -7,8 +7,8 @@ CShowOtherOneWindow::CShowOtherOneWindow(QWidget *parent) :
     ui(new Ui::CShowOtherOneWindow)
 {
     ui->setupUi(this);
-    this->setWindowFlags(windowFlags()& ~Qt::WindowMaximizeButtonHint);
-    this->setFixedSize(SHOW_OTHER_ONE_WINDOW_WIDE, SHOW_OTHER_ONE_WINDOW_HIGH);
+//    this->setWindowFlags(windowFlags()& ~Qt::WindowMaximizeButtonHint);
+//    this->setFixedSize(SHOW_OTHER_ONE_WINDOW_WIDE, SHOW_OTHER_ONE_WINDOW_HIGH);
     this->setAttribute(Qt::WA_DeleteOnClose);
 }
 

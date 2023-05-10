@@ -8,8 +8,8 @@ CDeleteStudentWindow::CDeleteStudentWindow(QWidget *parent) :
     ui(new Ui::CDeleteStudentWindow)
 {
     ui->setupUi(this);
-    this->setWindowFlags(windowFlags()& ~Qt::WindowMaximizeButtonHint);
-    this->setFixedSize(DELETE_STUDENT_WINDOW_WIDE, DELETE_STUDENT_WINDOW_HIGH);
+//    this->setWindowFlags(windowFlags()& ~Qt::WindowMaximizeButtonHint);
+//    this->setFixedSize(DELETE_STUDENT_WINDOW_WIDE, DELETE_STUDENT_WINDOW_HIGH);
     this->setAttribute(Qt::WA_DeleteOnClose);
     this->setWindowModality(Qt::ApplicationModal);
     connect(ui->delStuBtn, &QPushButton::clicked, this, &CDeleteStudentWindow::isDelStu);

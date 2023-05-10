@@ -2,14 +2,15 @@
 from docx import Document
 import os
 
+flag_num = 0
 
 def write_word(file_name, text_data, flag_name, save_path):
     """替换word文本框中的内容"""
-#    print("write_word is done")
-#    print(file_name)
-#    print(text_data)
-#    print(flag_name)
-#    print(save_path)
+    #    print("write_word is done")
+    #    print(file_name)
+    #    print(text_data)
+    #    print(flag_name)
+    #    print(save_path)
     ERROR_CODE = 0  # 无错误
     try:
         docStr = Document(file_name)  # 打开文件
@@ -26,7 +27,14 @@ def write_word(file_name, text_data, flag_name, save_path):
             for ci in child.iter():  # 文本框中的内容
                 if ci.tag.endswith('main}r'):  # 文本框中的文本
                     if ci.text == flag_name:  # 判断文本框中的内容是否为需要替换的内容
+                        global flag_num
+                        flag_num = 1
                         ci.text = text_data  # 替换文本框中的内容
+    print(flag_num)
+
+    if not flag_num:
+        ERROR_CODE = 4
+        return ERROR_CODE
     try:
         # 保存文件
         folder = os.path.exists(save_path)  # 判断是否存在文件夹如果不存在则创建为文件夹
@@ -39,6 +47,7 @@ def write_word(file_name, text_data, flag_name, save_path):
         return ERROR_CODE  # 返回错误码
     return ERROR_CODE  # 返回错误码
 
+
 if __name__ == "__main__":
-    write_word("001.docx", "aaa", "NAME", "save")
+    print(write_word("001.docx", "aaa", "NAME", "save"))
     print("MAIN")
