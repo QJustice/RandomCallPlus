@@ -521,7 +521,7 @@ void CMainWindow::startAction()
     {
         if (this->m_pTimer->isActive())
         {
-            ui->startbtn->setText("开始");
+            ui->startbtn->setText("GO");
             this->m_pTimer->stop();
             if (ui->checkBox->isChecked())
             {
@@ -1231,7 +1231,7 @@ void CMainWindow::initOneStuOneTimeFuc(int arg)
 
 void CMainWindow::resseting()
 {
-    ui->label->setText("开始");
+    ui->label->setText("GO");
     ui->labelNum->setText("0/0(已出场/全部)");
     this->m_pList->clear();
     this->m_pLukeyList->clear();
