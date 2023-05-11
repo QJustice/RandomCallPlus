@@ -175,7 +175,7 @@ void CMainWindow::addStudenWindow()
                                     "                                       MATCH [FULL],               "
                                     "    StuAnsTime    INT  DEFAULT (0),                                "
                                     "    StuAnsRigTime INT  DEFAULT (0),                                "
-                                    "    StuSource     TEXT DEFAULT (0)                                 "
+                                    "    StuSource     INT DEFAULT (0)                                  "
                                     ")STRICT                                                            "
                                 );
     QSqlQuery sqlQuery(this->m_database); // 用于执行sql语句的对象
@@ -322,10 +322,11 @@ void CMainWindow::statisticWindow(QString ins)
         return;
     }
     QString str1 = "StuAnsTime DESC";
-    QString str2 = "StuSource DESC";
-    QString str3 = "StuAnsTime ASC";
+    QString str2 = "StuAnsTime ASC";
+    QString str3 = "StuSource DESC";
     QString str4 = "StuSource ASC";
     QString strRes = str1;
+    qDebug() << STU_ANS_TIME_MAX << ins;
     if (STU_ANS_TIME_MAX == ins)
         strRes = str1;
     else if (STU_ANS_TIME_MIN == ins)
@@ -347,6 +348,7 @@ void CMainWindow::statisticWindow(QString ins)
                                     "ORDER BY %2                                                            "
                                 ).arg(this->claNumAndclaNam.first, strRes);
     sqlQuery.prepare(queryTemp);
+    qDebug() << queryTemp;
     // 执行sql语句
     if (!sqlQuery.exec())
     {
@@ -523,6 +525,29 @@ void CMainWindow::startAction()
         {
             ui->startbtn->setText("GO");
             this->m_pTimer->stop();
+            if (!this->m_database.open())
+            {
+                QMessageBox::critical(this, "错误", QString("数据库表初始化失败，失败原因:%1").arg(this->m_database.lastError().text()));
+                return;
+            }
+            QSqlQuery sqlQuery(this->m_database); // 用于执行sql语句的对象
+            QString queryTemp = QString(
+                                        "UPDATE StuData                                 "\
+                                        "SET StuAnsTime = StuAnsTime + 1                "\
+                                        "WHERE StuNum = '%1'                            "
+                                    ).arg(this->m_lukeyOne.first);
+            qDebug() << queryTemp;
+            sqlQuery.prepare(queryTemp);
+            // 执行sql语句
+            if (!sqlQuery.exec())
+            {
+                QMessageBox::critical(this, "错误", QString("数据库操作失败，失败原因:%1").arg(sqlQuery.lastError().text()));
+                return;
+            }
+            else
+            {
+                qDebug() << "add end";
+            }
             if (ui->checkBox->isChecked())
             {
                 this->m_pList->removeOne(this->m_lukeyOne);
@@ -535,24 +560,7 @@ void CMainWindow::startAction()
             else
                 return;
             ui->labelNum->setText(QString("%1/%2(已出场/全部)").arg(this->m_pLukeyList->length()).arg(this->m_allNum));
-            if (!this->m_database.open())
-            {
-                QMessageBox::critical(this, "错误", QString("数据库表初始化失败，失败原因:%1").arg(this->m_database.lastError().text()));
-                return;
-            }
-            QSqlQuery sqlQuery(this->m_database); // 用于执行sql语句的对象
-            QString queryTemp = QString(
-                                        "UPDATE StuData                                 "\
-                                        "SET StuAnsTime = StuAnsTime + 1                "\
-                                        "WHERE StuNum = '%1'                            "
-                                    ).arg(this->m_lukeyOne.first);
-            sqlQuery.prepare(queryTemp);
-            // 执行sql语句
-            if (!sqlQuery.exec())
-            {
-                QMessageBox::critical(this, "错误", QString("数据库操作失败，失败原因:%1").arg(sqlQuery.lastError().text()));
-                return;
-            }
+
         }
         else
         {
@@ -699,7 +707,7 @@ void CMainWindow::nowCreCla()
     }
 }
 
-void CMainWindow::nowDelCla()
+ void CMainWindow::nowDelCla()
 {
     QSqlQuery sqlQuery(this->m_database); // 用于执行sql语句的对象
     QString classNumber = "classNumber";
@@ -766,7 +774,7 @@ void CMainWindow::nowDelCla()
     {
         this->m_delClsWin->close();
         QMessageBox::information(this, "提示", "班级删除成功");
-        if (classNumber == ui->nowClaLab->text().left(3))
+        if (classNumber == ui->nowClaLab->text().split('$').at(0));
             ui->nowClaLab->setText("请选择班级");
     }
 }
@@ -1019,8 +1027,8 @@ void CMainWindow::nowImportStuData()
                                     "                                       ON UPDATE CASCADE       "\
                                     "                                       MATCH FULL,             "\
                                     "    ClassNum TEXT                                              "\
-                                    "             REFERENCES Class (ClassNum) ON DELETE NO ACTION   "\
-                                    "                                         ON UPDATE NO ACTION   "\
+                                    "             REFERENCES Class (ClassNum) ON DELETE CASCADE     "\
+                                    "                                         ON UPDATE CASCADE     "\
                                     "                                         MATCH FULL            "\
                                     ")STRICT                                                        "
                                 );
@@ -1039,12 +1047,12 @@ void CMainWindow::nowImportStuData()
                                     "    StuNum TEXT PRIMARY KEY                                        "
                                     "           UNIQUE                                                  "
                                     "           NOT NULL                                                "
-                                    "           REFERENCES Student (StuNum) ON DELETE NO ACTION         "
-                                    "                                       ON UPDATE NO ACTION         "
+                                    "           REFERENCES Student (StuNum) ON DELETE CASCADE           "
+                                    "                                       ON UPDATE CASCADE           "
                                     "                                       MATCH [FULL],               "
                                     "    StuAnsTime    INT  DEFAULT (0),                                "
                                     "    StuAnsRigTime INT  DEFAULT (0),                                "
-                                    "    StuSource     TEXT DEFAULT (0)                                 "
+                                    "    StuSource     INT DEFAULT (0)                                  "
                                     ")STRICT                                                            "
                                 );
     QSqlQuery sqlQuery(this->m_database); // 用于执行sql语句的对象
